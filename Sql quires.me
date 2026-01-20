@@ -59,3 +59,15 @@ INNER JOIN categories cat ON p.category_id = cat.category_id;
 
 To ensure mapping is working correctly, run an INNER JOIN. This combines data from all four tables into one business report.
 
+
+SELECT 
+    i.InvoiceId, 
+    i.InvoiceDate, 
+    c.FirstName, 
+    c.LastName, 
+    c.Email
+FROM invoice i
+INNER JOIN customer c 
+    ON i.CustomerId = c.CustomerId
+LIMIT 1000;
+
