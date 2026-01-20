@@ -1,0 +1,61 @@
+Primary Keys (PK): Uniquely identify each record.
+
+Foreign Keys (FK): Map a record in one table to a record in another.
+
+-- 1. Create Categories (Parent Table)
+
+CREATE TABLE categories (
+    category_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_name VARCHAR(100) NOT NULL
+);
+
+-- 2. Create Products (Child of Categories)
+
+CREATE TABLE products (
+    product_id INT AUTO_INCREMENT PRIMARY KEY,
+    product_name VARCHAR(255) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    category_id INT,
+    FOREIGN KEY (category_id) REFERENCES categories(category_id)
+    ON DELETE SET NULL
+);
+
+-- 3. Create Customers (Parent Table)
+
+CREATE TABLE customers (
+    customer_id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+-- 4. Create Orders (Child of Customers and Products)
+
+CREATE TABLE orders (
+    order_id INT AUTO_INCREMENT PRIMARY KEY,
+    order_date DATE NOT NULL,
+    customer_id INT,
+    product_id INT,
+    quantity INT DEFAULT 1,
+    FOREIGN KEY (customer_id) REFERENCES customers(customer_id)
+    ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES products(product_id)
+    ON DELETE CASCADE
+);
+
+Table veriffication after adding the above tabes.
+
+SELECT 
+    o.order_id,
+    c.first_name,
+    c.last_name,
+    p.product_name,
+    cat.category_name,
+    o.order_date
+FROM orders o
+INNER JOIN customers c ON o.customer_id = c.customer_id
+INNER JOIN products p ON o.product_id = p.product_id
+INNER JOIN categories cat ON p.category_id = cat.category_id;
+
+To ensure mapping is working correctly, run an INNER JOIN. This combines data from all four tables into one business report.
+
