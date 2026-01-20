@@ -300,6 +300,68 @@ Easy to extend for other countries, genres, or additional filters.
 Output includes:
 Country, Customer, Product SKU & Name, Genre, Revenue
 
+Different methods used to get the top 3 geners are sold by the company and details inforation, sql queres used to get the output. 
+
+SELECT
+    i.BillingCountry AS Country,
+    c.CustomerId,
+    c.FirstName AS CustomerFirstName,
+    c.LastName AS CustomerLastName,
+    t.TrackId AS ProductSKU,
+    t.Name AS ProductName,
+    g.GenreId AS CategoryId,
+    g.Name AS CategoryName,
+    SUM(il.UnitPrice * il.Quantity) AS Revenue
+FROM Customer c
+INNER JOIN Invoice i
+    ON c.CustomerId = i.CustomerId
+INNER JOIN InvoiceLine il
+    ON i.InvoiceId = il.InvoiceId
+INNER JOIN Track t
+    ON il.TrackId = t.TrackId
+INNER JOIN Genre g
+    ON t.GenreId = g.GenreId
+WHERE i.BillingCountry = 'USA'
+  AND i.InvoiceDate BETWEEN '2010-01-01' AND '2010-12-31'
+GROUP BY
+    t.TrackId,
+    t.Name
+ORDER BY Revenue DESC
+INTO OUTFILE '/tmp/chinook_top_products.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\3';
+
+SELECT
+    t.TrackId AS ProductSKU,
+    t.Name AS ProductName,
+    SUM(il.UnitPrice * il.Quantity) AS Revenue
+FROM Track t
+INNER JOIN InvoiceLine il
+    ON t.TrackId = il.TrackId
+GROUP BY t.TrackId, t.Name
+ORDER BY Revenue DESC
+LIMIT 3;
+
+SELECT
+    t.TrackId AS ProductSKU,
+    t.Name AS ProductName,
+    SUM(il.UnitPrice * il.Quantity) AS Revenue,
+    ROUND(
+        SUM(il.UnitPrice * il.Quantity) / total.TotalRevenue * 100, 2
+    ) AS RevenuePercentage
+FROM Track t
+INNER JOIN InvoiceLine il
+    ON t.TrackId = il.TrackId
+CROSS JOIN (
+    SELECT SUM(il.UnitPrice * il.Quantity) AS TotalRevenue
+    FROM InvoiceLine il
+) AS total
+GROUP BY t.TrackId, t.Name
+ORDER BY Revenue DESC
+LIMIT 3;
+
+
 
 
 
