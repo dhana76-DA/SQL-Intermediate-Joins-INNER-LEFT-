@@ -10,29 +10,30 @@ Dataset and Tables
 
 Chinook Database simulates a digital media store and contains the following relevant tables:
 
-Table Name	Description
-Customer	Contains customer details: CustomerId, FirstName, LastName, Email, Country
-Invoice	Contains invoice/order details: InvoiceId, CustomerId, InvoiceDate, BillingCountry
-InvoiceLine	Contains order item details: InvoiceLineId, InvoiceId, TrackId, UnitPrice, Quantity
-Track	Contains product details: TrackId, Name, GenreId, UnitPrice
-Genre	Represents product categories: GenreId, Name
+Table Name	            Description
+Customer	            Contains customer details: CustomerId, FirstName, LastName, Email, Country
+Invoice	                Contains invoice/order details: InvoiceId, CustomerId, InvoiceDate, BillingCountry
+InvoiceLine	            Contains order item details: InvoiceLineId, InvoiceId, TrackId, UnitPrice, Quantity
+Track	                Contains product details: TrackId, Name, GenreId, UnitPrice
+Genre	                Represents product categories: GenreId, Name
 
 Relationships and Keys:
 
-Relationship	Type	Notes
-Customer → Invoice	One-to-Many	CustomerId is PK in Customer, FK in Invoice
-Invoice → InvoiceLine	One-to-Many	InvoiceId is PK in Invoice, FK in InvoiceLine
-Track → InvoiceLine	One-to-Many	TrackId is PK in Track, FK in InvoiceLine
-Genre → Track	One-to-Many	GenreId is PK in Genre, FK in Track
+Relationship	     Type	                    Notes
+Customer →          Invoice	                    One-to-Many	CustomerId is PK in Customer, FK in Invoice
+Invoice →           InvoiceLine	                One-to-Many	InvoiceId is PK in Invoice, FK in InvoiceLine
+Track →             InvoiceLine	One-to-Many	    TrackId is PK in Track, FK in InvoiceLine
+Genre →             Track	                    One-to-Many	GenreId is PK in Genre, FK in Track
+
 Step 1: Load Dataset into SQL
 
 Tables Created with PK/FK constraints:
 
-CREATE TABLE Customer (... CustomerId PRIMARY KEY ...);
-CREATE TABLE Genre (... GenreId PRIMARY KEY ...);
-CREATE TABLE Track (... TrackId PRIMARY KEY, GenreId FOREIGN KEY ...);
-CREATE TABLE Invoice (... InvoiceId PRIMARY KEY, CustomerId FOREIGN KEY ...);
-CREATE TABLE InvoiceLine (... InvoiceLineId PRIMARY KEY, InvoiceId & TrackId FOREIGN KEYS ...);
+CREATE TABLE Customer (CustomerId PRIMARY KEY);
+CREATE TABLE Genre (GenreId PRIMARY KEY);
+CREATE TABLE Track (TrackId PRIMARY KEY, GenreId FOREIGN KEY);
+CREATE TABLE Invoice (InvoiceId PRIMARY KEY, CustomerId FOREIGN KEY);
+CREATE TABLE InvoiceLine (InvoiceLineId PRIMARY KEY, InvoiceId & TrackId FOREIGN KEYS);
 
 Purpose: Ensure referential integrity and correct relationships for joins.
 
@@ -171,9 +172,9 @@ All queries are documented in joins_queries.sql with comments explaining each qu
 
 Summary of Outputs Checked
 Output	Description	Verified?
-INNER JOIN Invoice + Customer	Combined orders with customer details	✅ Order counts match
-LEFT JOIN Customer + Invoice	Customers with no orders	✅ Identified inactive customers
-Revenue per Product	Total revenue per SKU	✅ Top products identified
-Category Revenue	Revenue by genre/category	✅ Insights for product strategy
-Sales by Region & Date	Filtered revenue for USA in 2021	✅ Regional analysis
-Top 3 Products with %	Revenue and contribution %	✅ Exported CSV and insights
+INNER JOIN Invoice + Customer	        Combined orders with customer details	    ✅ Order counts match
+LEFT JOIN Customer + Invoice	        Customers with no orders	                ✅ Identified inactive customers
+Revenue per Product	                    Total revenue per SKU	                    ✅ Top products identified
+Category Revenue	                    Revenue by genre/category	                ✅ Insights for product strategy
+Sales by Region & Date	                Filtered revenue for USA in 2021	        ✅ Regional analysis
+Top 3 Products with %	                Revenue and contribution %	                ✅ Exported CSV and insights
