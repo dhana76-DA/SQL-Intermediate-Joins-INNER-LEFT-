@@ -59,6 +59,7 @@ INNER JOIN categories cat ON p.category_id = cat.category_id;
 
 To ensure mapping is working correctly, run an INNER JOIN. This combines data from all four tables into one business report.
 
+This query retrieves up to 1000 invoice records by joining the Invoice and Customer tables using an INNER JOIN on CustomerId, displaying each invoice’s ID and date along with the corresponding customer’s first name, last name, and email, and returns only those invoices that have matching customer records.
 
 SELECT 
     i.InvoiceId, 
@@ -70,4 +71,237 @@ FROM invoice i
 INNER JOIN customer c 
     ON i.CustomerId = c.CustomerId
 LIMIT 1000;
+
+
+This query uses a LEFT JOIN to include all customers and filters those without matching records in the Orders table, thereby identifying customers who have never placed any orders, which is valuable for targeted marketing campaigns.
+
+This LEFT JOIN query identifies customers who have no matching records in the Invoice table, indicating customers who have never placed any orders.
+SELECT 
+    c.CustomerId,
+    c.FirstName,
+    c.LastName,
+    c.Email
+FROM Customer c
+LEFT JOIN Invoice i
+    ON c.CustomerId = i.CustomerId
+WHERE i.InvoiceId IS NULL;
+
+This query joins InvoiceLine and Track tables to calculate total revenue per product by summing unit price multiplied by quantity, helping identify high-performing SKUs.
+
+Joins InvoiceLine (orders) with Track (products)
+Calculates revenue = UnitPrice × Quantity
+Groups data per product (SKU)
+Sorts results to show highest-performing products first
+
+SELECT
+    t.TrackId AS SKU,
+    t.Name AS ProductName,
+    SUM(il.UnitPrice * il.Quantity) AS TotalRevenue
+FROM InvoiceLine il
+INNER JOIN Track t
+    ON il.TrackId = t.TrackId
+GROUP BY
+    t.TrackId,
+    t.Name
+ORDER BY
+    TotalRevenue DESC;
+
+SELECT
+    t.TrackId,
+    t.Name,
+    SUM(il.UnitPrice * il.Quantity) AS TotalRevenue
+FROM InvoiceLine il
+INNER JOIN Track t
+    ON il.TrackId = t.TrackId
+GROUP BY t.TrackId, t.Name
+HAVING TotalRevenue > 2
+ORDER BY TotalRevenue DESC;
+
+This query joins Genre, Track, and InvoiceLine tables to calculate category-wise revenue distribution, supporting data-driven product strategy decisions.
+
+Joins Genre (categories) with Track (products)
+Links sales data using InvoiceLine
+Calculates revenue per category
+Sorts categories by highest revenue first
+Focus marketing on high-revenue genres
+Expand catalog in profitable categories
+Review or discount low-performing genres
+
+SELECT
+    g.GenreId,
+    g.Name AS CategoryName,
+    SUM(il.UnitPrice * il.Quantity) AS TotalRevenue
+FROM Genre g
+INNER JOIN Track t
+    ON g.GenreId = t.GenreId
+INNER JOIN InvoiceLine il
+    ON t.TrackId = il.TrackId
+GROUP BY
+    g.GenreId,
+    g.Name
+ORDER BY
+    TotalRevenue DESC;
+
+This query shows the details of the Sales by Customer form a period of '2021-01-01' AND '2021-12-31'
+
+SELECT c.FirstName, c.LastName, SUM(il.UnitPrice * il.Quantity) AS TotalSales
+FROM Invoice i
+INNER JOIN InvoiceLine il ON i.InvoiceId = il.InvoiceId
+INNER JOIN Customer c ON i.CustomerId = c.CustomerId
+WHERE i.BillingCountry = 'USA'
+  AND i.InvoiceDate BETWEEN '2021-01-01' AND '2021-12-31'
+GROUP BY c.CustomerId, c.FirstName, c.LastName
+ORDER BY TotalSales DESC;
+
+
+This query shows the details of the Sales by Region/country form a period of '2021-01-01' AND '2021-12-31'
+WHERE conditions can be applied on joined tables to filter records by region, date, or other business criteria, enabling focused analysis like total sales for a specific region in a given period.
+
+SELECT
+    i.BillingCountry AS Country,
+    SUM(il.UnitPrice * il.Quantity) AS TotalSales
+FROM Invoice i
+INNER JOIN InvoiceLine il
+    ON i.InvoiceId = il.InvoiceId
+WHERE i.BillingCountry = 'USA'
+  AND i.InvoiceDate BETWEEN '2021-01-01' AND '2021-12-31'
+GROUP BY i.BillingCountry;
+
+Total Sales in USA Between Dates (With Aliases)
+SELECT
+    i.BillingCountry AS Country,
+    SUM(il.UnitPrice * il.Quantity) AS TotalSales
+FROM Invoice i
+INNER JOIN InvoiceLine il
+    ON i.InvoiceId = il.InvoiceId
+WHERE i.BillingCountry = 'USA'
+  AND i.InvoiceDate BETWEEN '2010-01-01' AND '2010-12-31'
+GROUP BY i.BillingCountry;
+
+uses i and il for readability.
+
+2️⃣ Sales by Customer in USA Between Dates (Professional Aliases)
+SELECT
+    c.FirstName AS CustomerFirstName,
+    c.LastName AS CustomerLastName,
+    SUM(il.UnitPrice * il.Quantity) AS TotalSales
+FROM Customer c
+INNER JOIN Invoice i
+    ON c.CustomerId = i.CustomerId
+INNER JOIN InvoiceLine il
+    ON i.InvoiceId = il.InvoiceId
+WHERE i.BillingCountry = 'USA'
+  AND i.InvoiceDate BETWEEN '2010-01-01' AND '2010-12-31'
+GROUP BY c.CustomerId, c.FirstName, c.LastName
+ORDER BY TotalSales DESC;
+
+c → Customer
+i → Invoice
+il → InvoiceLine
+
+3️⃣ Total Revenue Per Product (Track/SKU) Using Aliases
+SELECT
+    t.TrackId AS SKU,
+    t.Name AS ProductName,
+    SUM(il.UnitPrice * il.Quantity) AS TotalRevenue
+FROM Track t
+INNER JOIN InvoiceLine il
+    ON t.TrackId = il.TrackId
+GROUP BY t.TrackId, t.Name
+ORDER BY TotalRevenue DESC;
+
+t → Track (product)
+il → InvoiceLine
+
+4️⃣ Category-wise Revenue Distribution (Genre) Using Aliases
+SELECT
+    g.GenreId AS CategoryId,
+    g.Name AS CategoryName,
+    SUM(il.UnitPrice * il.Quantity) AS TotalRevenue
+FROM Genre g
+INNER JOIN Track t
+    ON g.GenreId = t.GenreId
+INNER JOIN InvoiceLine il
+    ON t.TrackId = il.TrackId
+GROUP BY g.GenreId, g.Name
+ORDER BY TotalRevenue DESC;
+
+g → Genre (category)
+t → Track (product)
+il → InvoiceLine
+
+5️⃣ Why Aliases Matter
+Makes long JOIN queries readable
+Helps avoid conflicts when multiple tables have same column names
+Makes queries scalable as you add more tables
+
+
+This is a single project-ready query for the Chinook dataset that is readable, scalable, and uses clear aliases (c, i, il, t, g).
+
+This query will include:
+
+Country (from Invoice)
+Customer (from Customer)
+Product / Track (from Track)
+Genre / Category (from Genre)
+Revenue calculation (UnitPrice × Quantity)
+
+Filters for region and date range
+SELECT
+    i.BillingCountry AS Country,
+    c.CustomerId,
+    c.FirstName AS CustomerFirstName,
+    c.LastName AS CustomerLastName,
+    t.TrackId AS ProductSKU,
+    t.Name AS ProductName,
+    g.GenreId AS CategoryId,
+    g.Name AS CategoryName,
+    SUM(il.UnitPrice * il.Quantity) AS Revenue
+FROM Customer c
+INNER JOIN Invoice i
+    ON c.CustomerId = i.CustomerId
+INNER JOIN InvoiceLine il
+    ON i.InvoiceId = il.InvoiceId
+INNER JOIN Track t
+    ON il.TrackId = t.TrackId
+INNER JOIN Genre g
+    ON t.GenreId = g.GenreId
+WHERE i.BillingCountry = 'USA'          -- Filter by region
+  AND i.InvoiceDate BETWEEN '2010-01-01' AND '2010-12-31'  -- Filter by date range
+GROUP BY
+    i.BillingCountry,
+    c.CustomerId,
+    c.FirstName,
+    c.LastName,
+    t.TrackId,
+    t.Name,
+    g.GenreId,
+    g.Name
+ORDER BY Revenue DESC;
+
+Clear table aliases:
+
+c → Customer
+i → Invoice
+il → InvoiceLine
+t → Track (product)
+g → Genre (category)
+
+Revenue calculation:
+SUM(il.UnitPrice * il.Quantity) gives total revenue per product per customer.
+
+Filters for business insights:
+WHERE i.BillingCountry = 'USA' → Region-specific analysis
+BETWEEN → Sales within a specific date range
+
+Scalable & readable:
+Easy to extend for other countries, genres, or additional filters.
+
+Output includes:
+Country, Customer, Product SKU & Name, Genre, Revenue
+
+
+
+
+
 
